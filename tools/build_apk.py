@@ -22,6 +22,8 @@ with zipfile.ZipFile(template) as zin, zipfile.ZipFile(out, 'w', zipfile.ZIP_DEF
             continue
         if name.startswith('lib/x86/'):
             continue
+        if name.startswith('lib/x86_64/'):
+            continue
         data = zin.read(name)
         zi = zipfile.ZipInfo(name, date_time=info.date_time)
         zi.compress_type = info.compress_type
