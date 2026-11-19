@@ -20,6 +20,8 @@ with zipfile.ZipFile(template) as zin, zipfile.ZipFile(out, 'w', zipfile.ZIP_DEF
         name = info.filename
         if name.startswith('META-INF/') and (name.endswith('.RSA') or name.endswith('.SF') or name.endswith('.MF')):
             continue
+        if name.startswith('lib/x86/'):
+            continue
         data = zin.read(name)
         zi = zipfile.ZipInfo(name, date_time=info.date_time)
         zi.compress_type = info.compress_type
