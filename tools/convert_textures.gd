@@ -1,8 +1,10 @@
 extends SceneTree
 
-# BC1/BC3/BPTC -> ETC2, in place. ETC2 is required by GLES3 and supported by
-# Mali, Xclipse and Adreno alike, so the same APK works everywhere.
-const COMPRESSED := [17, 18, 19, 22, 23, 24]
+# All imported textures -> ETC2 (GPU-universal: Mali, Xclipse, Adreno; GLES3
+# requires ETC2). Large textures are downscaled to 512 px: the game viewport
+# is 960x540 and this is the difference between a 520 MB and a ~230 MB APK.
+const COMPRESSED := [17, 18, 19, 22, 23, 24, 34]
+const MAX_DIM := 512
 var converted := 0
 var skipped := 0
 var failed := 0
@@ -36,13 +38,18 @@ func convert_one(p: String):
 		skipped += 1; f.close(); return
 	var data := f.get_buffer(f.get_length() - f.get_position())
 	f.close()
-	var img := Image.create_from_data(w, h, mips > 0, fmt, data)
+	var img := Image.create_from_data(w, h, false, fmt, data)
 	if img == null or img.is_empty():
 		failed += 1; print("FAIL create ", p); return
 	var err := img.decompress()
 	if err != OK or img.is_compressed():
 		failed += 1; print("FAIL decompress ", p, " err=", err); return
 	img.convert(Image.FORMAT_RGBA8)
+	if max(img.get_width(), img.get_height()) > MAX_DIM:
+		var sc := float(MAX_DIM) / max(img.get_width(), img.get_height())
+		var nw := int(round(img.get_width() * sc / 4.0)) * 4
+		var nh := int(round(img.get_height() * sc / 4.0)) * 4
+		img.resize(max(nw, 4), max(nh, 4), Image.INTERPOLATE_LANCZOS)
 	err = img.compress(Image.COMPRESS_ETC2)
 	if err != OK or not img.is_compressed():
 		failed += 1; print("FAIL compress ", p, " err=", err); return
@@ -53,9 +60,9 @@ func convert_one(p: String):
 	nf.store_32(0)
 	nf.store_16(img.get_width())
 	nf.store_16(img.get_height())
-	nf.store_32(0) # base level only; loader ignores trailing bytes
+	nf.store_32(0)
 	nf.store_32(img.get_format())
 	nf.store_buffer(img.get_data())
 	nf.close()
 	converted += 1
-	if converted % 50 == 0: print("converted ", converted)
+	if converted % 100 == 0: print("converted ", converted)
