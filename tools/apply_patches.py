@@ -75,3 +75,20 @@ t2 = re.sub(r'var using_steam\s*=\s*true', 'var using_steam = false', t)
 assert t2 != t, 'using_steam not patched'
 open(gv, 'w', encoding='utf-8').write(t2)
 print(f'scripts rewritten: {changed}; Steam leftovers: {leftover}')
+
+# ---- slim: replace MP music/audio (>200 KB) with the smallest valid stream ----
+imp = os.path.join(game, '.godot/imported')
+streams = []
+for f in os.listdir(imp):
+    if f.endswith('.oggvorbisstr'):
+        p = os.path.join(imp, f)
+        streams.append((os.path.getsize(p), p))
+streams.sort()
+if streams and os.environ.get('SLIM', '1') == '1':
+    tiny = open(streams[0][1], 'rb').read()
+    saved = 0
+    for size, p in streams:
+        if os.path.basename(p).startswith('mp_') and size > 200_000:
+            saved += size - len(tiny)
+            open(p, 'wb').write(tiny)
+    print(f'MP audio slimmed: {saved/1048576:.1f} MB')
