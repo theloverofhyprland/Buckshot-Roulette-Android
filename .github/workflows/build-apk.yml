@@ -42,7 +42,8 @@ jobs:
         run: |
           mkdir -p game/tools
           cp tools/convert_textures.gd game/tools/
-          ./godot --headless --path game --script res://tools/convert_textures.gd 2>&1 | tail -40
+          find game -name '*.ctex' -printf '%P\n' > ctex_list.txt
+          CTEX_ROOT="$PWD/game" CTEX_LIST="$PWD/ctex_list.txt" ./godot --headless --path game --script res://tools/convert_textures.gd 2>&1 | tail -60
 
       - name: Assemble APK
         run: |

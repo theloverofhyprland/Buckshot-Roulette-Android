@@ -8,23 +8,17 @@ var skipped := 0
 var failed := 0
 
 func _init():
-	walk("res://")
+	var root := OS.get_environment("CTEX_ROOT")
+	var list := OS.get_environment("CTEX_LIST")
+	var txt := FileAccess.get_file_as_string(list)
+	var files := txt.split("\n", false)
+	print("CTEX files: ", files.size(), " root=", root)
+	for rel in files:
+		rel = rel.strip_edges()
+		if rel != "":
+			convert_one(root.path_join(rel))
 	print("CONVERT_DONE converted=", converted, " skipped=", skipped, " failed=", failed)
 	quit(0)
-
-func walk(path: String):
-	var d := DirAccess.open(path)
-	if d == null: return
-	d.list_dir_begin()
-	var n := d.get_next()
-	while n != "":
-		var p := path.path_join(n)
-		if d.current_is_dir():
-			walk(p)
-		elif n.ends_with(".ctex"):
-			convert_one(p)
-		n = d.get_next()
-	d.list_dir_end()
 
 func convert_one(p: String):
 	var f := FileAccess.open(p, FileAccess.READ)
