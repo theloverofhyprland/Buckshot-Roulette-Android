@@ -1,0 +1,79 @@
+name: build-apk
+on:
+  workflow_dispatch:
+    inputs:
+      renderer:
+        description: "Godot renderer"
+        default: "gl_compatibility"
+        type: choice
+        options: [gl_compatibility, mobile, forward_plus]
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download game data
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p src game
+          gh release download tex-v1 --repo "${{ github.repository }}" -p '*.tar' -D src --clobber
+          tar -xf src/rest.tar -C game
+          mkdir -p game/.godot/imported
+          tar -xf src/imported_other.tar -C game/.godot/imported
+          tar -xf src/tex_ctex.tar -C game/.godot/imported
+          ls game | head
+
+      - name: Patch project + scripts
+        run: python3 tools/apply_patches.py game "${{ inputs.renderer }}"
+
+      - name: Get Godot 4.1.1
+        run: |
+          curl -L -o godot.zip https://github.com/godotengine/godot/releases/download/4.1.1-stable/Godot_v4.1.1-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          mv Godot_v4.1.1-stable_linux.x86_64 godot
+          chmod +x godot
+
+      - name: Convert textures to ETC2
+        run: |
+          mkdir -p game/tools
+          cp tools/convert_textures.gd game/tools/
+          ./godot --headless --path game --script res://tools/convert_textures.gd 2>&1 | tail -40
+
+      - name: Assemble APK
+        run: |
+          curl -L -o android_release.apk "https://github.com/${{ github.repository }}/releases/download/tex-v1/android_release.apk"
+          mkdir -p out
+          python3 tools/build_apk.py android_release.apk game out/unsigned.apk
+
+      - name: Keystore
+        uses: actions/cache@v4
+        with:
+          path: keystore.jks
+          key: br-keystore-v1
+      - name: Make keystore
+        run: |
+          test -f keystore.jks || keytool -genkeypair -keystore keystore.jks -alias br \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass brpass -keypass brpass -dname "CN=Buckshot Mobile"
+
+      - name: Align + sign
+        run: |
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          "$BT/zipalign" -P 16 -f 4 out/unsigned.apk out/aligned.apk || "$BT/zipalign" -p -f 4 out/unsigned.apk out/aligned.apk
+          "$BT/apksigner" sign --ks keystore.jks --ks-pass pass:brpass --key-pass pass:brpass \
+            --out out/BuckshotRoulette.apk out/aligned.apk
+          "$BT/apksigner" verify out/BuckshotRoulette.apk
+          ls -lh out/BuckshotRoulette.apk
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view apk-latest --repo "${{ github.repository }}" >/dev/null 2>&1 || \
+            gh release create apk-latest --repo "${{ github.repository }}" --title "Buckshot Roulette Android (APK)" --notes "Touch build. Install, then open."
+          gh release upload apk-latest out/BuckshotRoulette.apk --repo "${{ github.repository }}" --clobber
