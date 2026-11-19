@@ -46,7 +46,7 @@ func convert_one(p: String):
 		failed += 1; print("FAIL decompress ", p, " err=", err); return
 	img.convert(Image.FORMAT_RGBA8)
 	if max(img.get_width(), img.get_height()) > MAX_DIM:
-		var sc := float(MAX_DIM) / max(img.get_width(), img.get_height())
+		var sc: float = float(MAX_DIM) / float(max(img.get_width(), img.get_height()))
 		var nw := int(round(img.get_width() * sc / 4.0)) * 4
 		var nh := int(round(img.get_height() * sc / 4.0)) * 4
 		img.resize(max(nw, 4), max(nh, 4), Image.INTERPOLATE_LANCZOS)
