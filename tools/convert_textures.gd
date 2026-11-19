@@ -53,7 +53,7 @@ func convert_one(p: String):
 	nf.store_32(0)
 	nf.store_16(img.get_width())
 	nf.store_16(img.get_height())
-	nf.store_32(img.get_mipmap_count())
+	nf.store_32(0) # base level only; loader ignores trailing bytes
 	nf.store_32(img.get_format())
 	nf.store_buffer(img.get_data())
 	nf.close()
