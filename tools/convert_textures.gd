@@ -36,8 +36,12 @@ func convert_one(p: String):
 	var fmt := f.get_32()
 	if df != 0 or not (fmt in COMPRESSED):
 		skipped += 1; f.close(); return
-	var data := f.get_buffer(f.get_length() - f.get_position())
+	var bs := 8 if fmt == 17 else 16
+	var sz := int((w + 3) / 4) * int((h + 3) / 4) * bs
+	var data := f.get_buffer(sz)
 	f.close()
+	if data.size() != sz:
+		failed += 1; print("FAIL size ", p, " ", data.size(), "/", sz); return
 	var img := Image.create_from_data(w, h, false, fmt, data)
 	if img == null or img.is_empty():
 		failed += 1; print("FAIL create ", p); return
