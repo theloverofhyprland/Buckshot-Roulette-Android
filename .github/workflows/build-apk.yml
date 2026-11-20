@@ -45,11 +45,14 @@ jobs:
           find game -name '*.ctex' -printf '%P\n' > ctex_list.txt
           CTEX_ROOT="$PWD/game" CTEX_LIST="$PWD/ctex_list.txt" ./godot --headless --path game --script res://tools/convert_textures.gd 2>&1 | tail -60
 
+      - name: Verify assets
+        run: python3 tools/verify_assets.py game
+
       - name: Assemble APK
         run: |
-          curl -L -o android_debug.apk "https://github.com/${{ github.repository }}/releases/download/tex-v1/android_debug.apk"
+          curl -L -o android_release.apk "https://github.com/${{ github.repository }}/releases/download/tex-v1/android_release.apk"
           mkdir -p out
-          python3 tools/build_apk.py android_debug.apk game out/unsigned.apk
+          python3 tools/build_apk.py android_release.apk game out/unsigned.apk
 
       - name: Keystore
         uses: actions/cache@v4

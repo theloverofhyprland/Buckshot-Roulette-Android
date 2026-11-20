@@ -96,12 +96,35 @@ if streams and os.environ.get('SLIM', '1') == '1':
             open(p, 'wb').write(tiny)
     print(f'Music/audio slimmed: {saved/1048576:.1f} MB')
 
-# ---- remove editor-only duplicates: runtime loads .godot/exported via remaps ----
-imp2 = os.path.join(game, '.godot/imported')
-trash = 0
-for f in os.listdir(imp2):
-    if f.endswith('.scn') or f.endswith('.res'):
-        pp = os.path.join(imp2, f)
-        trash += os.path.getsize(pp)
-        os.remove(pp)
-print(f'removed duplicate scenes/resources: {trash/1048576:.1f} MB')
+# ---- remaps for imported resources ----
+# The exported engine resolves res://foo.png through foo.png.remap; the .import
+# file itself is editor-only. The decompiled project has .import files but the
+# remaps were stripped, so every texture/font/sound/model failed to load.
+# Targets in .godot/imported are kept: .glb models use their .scn directly.
+PREF = ('path.etc2', 'path.s3tc', 'path.bptc', 'path.mobile', 'path')
+remaps = 0
+unresolved = []
+for root, dirs, files in os.walk(game):
+    dirs[:] = [d for d in dirs if d != 'tools']
+    for f in files:
+        if not f.endswith('.import'):
+            continue
+        imp = os.path.join(root, f)
+        src = imp[:-len('.import')]
+        if os.path.exists(src + '.remap'):
+            continue
+        text = open(imp, encoding='utf-8', errors='replace').read()
+        paths = dict(re.findall(r'^(path(?:\.[a-z0-9]+)?)="([^"]+)"', text, re.M))
+        target = None
+        for key in PREF:
+            v = paths.get(key)
+            if v and v.startswith('res://') and os.path.exists(os.path.join(game, v[6:])):
+                target = v
+                break
+        if target is None:
+            unresolved.append(os.path.relpath(imp, game))
+            continue
+        with open(src + '.remap', 'w', encoding='utf-8', newline='\n') as out:
+            out.write('[remap]\n\npath="%s"\n' % target)
+        remaps += 1
+print(f'remaps generated: {remaps}; unresolved (csv translations are fine): {len(unresolved)}')

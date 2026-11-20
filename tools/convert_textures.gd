@@ -2,9 +2,9 @@ extends SceneTree
 
 # All imported textures -> ETC2 (GPU-universal: Mali, Xclipse, Adreno; GLES3
 # requires ETC2). Large textures are downscaled to 512 px: the game viewport
-# is 960x540 and this is the difference between a 520 MB and a ~230 MB APK.
+# is 960x540; 320 px keeps the APK under 200 MB with room for models.
 const COMPRESSED := [17, 18, 19, 22, 23, 24, 34]
-const MAX_DIM := 384
+const MAX_DIM := 320
 var converted := 0
 var skipped := 0
 var failed := 0
