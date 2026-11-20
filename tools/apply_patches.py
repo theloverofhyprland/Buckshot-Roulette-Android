@@ -43,6 +43,7 @@ set_raw(items, 'display/window/handheld/orientation', 0)
 set_raw(items, 'input_devices/pointing/emulate_mouse_from_touch', True)
 set_raw(items, 'input_devices/pointing/emulate_touch_from_mouse', False)
 set_raw(items, 'autoload/TouchOverlay', '*res://scripts/TouchOverlay.gd')
+set_raw(items, 'autoload/NetLog', '*res://scripts/NetLog.gd')
 set_raw(items, 'input_devices/pointing/android/enable_long_press_as_right_click', True)
 save_raw(pb, items)
 print('project.binary patched:', len(items), 'settings')
@@ -52,6 +53,8 @@ stub = open(os.path.join(os.path.dirname(__file__), 'Steam_stub.gd'), encoding='
 open(os.path.join(game, 'scripts/Steam.gd'), 'w', encoding='utf-8').write(stub)
 touch = open(os.path.join(os.path.dirname(__file__), 'TouchOverlay.gd'), encoding='utf-8').read()
 open(os.path.join(game, 'scripts/TouchOverlay.gd'), 'w', encoding='utf-8').write(touch)
+netlog = open(os.path.join(os.path.dirname(__file__), 'NetLog.gd'), encoding='utf-8').read()
+open(os.path.join(game, 'scripts/NetLog.gd'), 'w', encoding='utf-8').write(netlog)
 
 changed = 0
 leftover = []
