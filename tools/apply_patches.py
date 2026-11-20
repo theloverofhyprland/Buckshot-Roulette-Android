@@ -92,3 +92,13 @@ if streams and os.environ.get('SLIM', '1') == '1':
             saved += size - len(tiny)
             open(p, 'wb').write(tiny)
     print(f'Music/audio slimmed: {saved/1048576:.1f} MB')
+
+# ---- remove editor-only duplicates: runtime loads .godot/exported via remaps ----
+imp2 = os.path.join(game, '.godot/imported')
+trash = 0
+for f in os.listdir(imp2):
+    if f.endswith('.scn') or f.endswith('.res'):
+        pp = os.path.join(imp2, f)
+        trash += os.path.getsize(pp)
+        os.remove(pp)
+print(f'removed duplicate scenes/resources: {trash/1048576:.1f} MB')
