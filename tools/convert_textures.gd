@@ -3,7 +3,7 @@ extends SceneTree
 # All imported textures -> ETC2 (GPU-universal: Mali, Xclipse, Adreno; GLES3
 # requires ETC2). Large textures are downscaled to 512 px: the game viewport
 # is 960x540; 320 px keeps the APK under 200 MB with room for models.
-const COMPRESSED := [17, 18, 19, 22, 23, 24, 34]
+const COMPRESSED := [17, 18, 19, 22, 23, 24, 25, 33, 34]
 const MAX_DIM := 320
 var converted := 0
 var skipped := 0
@@ -36,7 +36,7 @@ func convert_one(p: String):
 	var fmt := f.get_32()
 	if df != 0 or not (fmt in COMPRESSED):
 		skipped += 1; f.close(); return
-	var bs := 8 if fmt == 17 else 16
+	var bs := 8 if fmt in [17, 25] else 16
 	var sz := int((w + 3) / 4) * int((h + 3) / 4) * bs
 	var data := f.get_buffer(sz)
 	f.close()
