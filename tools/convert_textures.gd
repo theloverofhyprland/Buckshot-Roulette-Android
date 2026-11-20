@@ -4,7 +4,7 @@ extends SceneTree
 # requires ETC2). Large textures are downscaled to 512 px: the game viewport
 # is 960x540 and this is the difference between a 520 MB and a ~230 MB APK.
 const COMPRESSED := [17, 18, 19, 22, 23, 24, 34]
-const MAX_DIM := 320
+const MAX_DIM := 256
 var converted := 0
 var skipped := 0
 var failed := 0

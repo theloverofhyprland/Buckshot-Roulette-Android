@@ -88,7 +88,7 @@ if streams and os.environ.get('SLIM', '1') == '1':
     tiny = open(streams[0][1], 'rb').read()
     saved = 0
     for size, p in streams:
-        if size > 300_000:
+        if size > 150_000:
             saved += size - len(tiny)
             open(p, 'wb').write(tiny)
     print(f'Music/audio slimmed: {saved/1048576:.1f} MB')
