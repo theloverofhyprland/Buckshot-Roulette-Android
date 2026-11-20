@@ -47,9 +47,9 @@ jobs:
 
       - name: Assemble APK
         run: |
-          curl -L -o android_release.apk "https://github.com/${{ github.repository }}/releases/download/tex-v1/android_release.apk"
+          curl -L -o android_debug.apk "https://github.com/${{ github.repository }}/releases/download/tex-v1/android_debug.apk"
           mkdir -p out
-          python3 tools/build_apk.py android_release.apk game out/unsigned.apk
+          python3 tools/build_apk.py android_debug.apk game out/unsigned.apk
 
       - name: Keystore
         uses: actions/cache@v4
