@@ -52,7 +52,7 @@ for root, dirs, files in os.walk(ig):
         inner = struct.unpack_from('<I', h, 36)[0]
         fmt = struct.unpack_from('<I', h, 48)[0]
         ctex += 1
-        if inner == 0 and fmt not in (30, 31, 32, 33):
+        if inner == 0 and fmt not in range(25, 34):
             problems.append(f'{f}: format {fmt} is not ETC2')
         elif inner not in (0, 1, 2, 3):
             problems.append(f'{f}: unexpected data format {inner}')
