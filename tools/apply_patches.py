@@ -88,7 +88,7 @@ if streams and os.environ.get('SLIM', '1') == '1':
     tiny = open(streams[0][1], 'rb').read()
     saved = 0
     for size, p in streams:
-        if os.path.basename(p).startswith('mp_') and size > 200_000:
+        if size > 300_000:
             saved += size - len(tiny)
             open(p, 'wb').write(tiny)
-    print(f'MP audio slimmed: {saved/1048576:.1f} MB')
+    print(f'Music/audio slimmed: {saved/1048576:.1f} MB')
